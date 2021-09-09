@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 import java.util.Properties
 import scala.concurrent.{ExecutionContext, Future}
 
-class DebugJsonProducer(configuration: Config)(implicit ec: ExecutionContext) {
+class MirrorProducer(configuration: Config)(implicit ec: ExecutionContext) {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 

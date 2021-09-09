@@ -1,6 +1,6 @@
 package io.radicalbit.interview
 
-import io.radicalbit.interview.kafka.{DebugAvroConsumer, DebugJsonProducer}
+import io.radicalbit.interview.kafka.{MirrorConsumer, MirrorProducer}
 import io.radicalbit.interview.service.DebugServiceRunner
 import com.typesafe.config.ConfigFactory
 
@@ -12,8 +12,8 @@ object Boot extends App {
 
     val config = ConfigFactory.load()
 
-    val jsonProducer = new DebugJsonProducer(config)
-    val avroConsumer = new DebugAvroConsumer(config, jsonProducer)
+    val jsonProducer = new MirrorProducer(config)
+    val avroConsumer = new MirrorConsumer(config, jsonProducer)
 
     val topicToMirror = Seq(("sourceOne", "outputOne"), ("sourceTwo", "outputTwo"), ("sourceThree", "outputThree"))
 

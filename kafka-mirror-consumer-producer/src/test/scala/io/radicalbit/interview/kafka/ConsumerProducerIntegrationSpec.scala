@@ -33,14 +33,14 @@ class ConsumerProducerIntegrationSpec extends AnyWordSpec with Matchers with Emb
           "consumer": {
             "bootstrap": {"servers": "localhost:${embeddedKafkaConfigIngoing.kafkaPort}"},
             "reading": {"limit": true},
-            "values": {"to": {"read": 5}}
+            "values": {"to": {"read": 1}}
           }
         }
       }"""
 
-  val config            = ConfigFactory.parseString(configString).withFallback(ConfigFactory.load())
-  val debugJsonProducer = new DebugJsonProducer(config)
-  val debugAvroConsumer = new DebugAvroConsumer(config, debugJsonProducer)
+  val config         = ConfigFactory.parseString(configString).withFallback(ConfigFactory.load())
+  val mirrorProducer = new MirrorProducer(config)
+  val mirrorConsumer = new MirrorConsumer(config, mirrorProducer)
 
   override def beforeEach(): Unit = {
     EmbeddedKafka.start()(embeddedKafkaConfigIngoing)
@@ -63,7 +63,7 @@ class ConsumerProducerIntegrationSpec extends AnyWordSpec with Matchers with Emb
         producer.send(new ProducerRecord[String, String](inputTopic, startingData)))
 
       // should read 1 message from first kafka instance and write on second
-      debugAvroConsumer.listen(inputTopic, outputTopic)
+      mirrorConsumer.listen(inputTopic, outputTopic)
 
       // consumer on second kafka instance
       val resultSecondTopic =

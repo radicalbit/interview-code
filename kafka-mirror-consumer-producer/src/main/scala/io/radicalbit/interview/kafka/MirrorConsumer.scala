@@ -12,8 +12,7 @@ import java.util.concurrent.TimeoutException
 import java.util.stream.Collectors
 import scala.concurrent.ExecutionContext
 
-class DebugAvroConsumer(configuration: Config, producer: DebugJsonProducer)(
-    implicit executionContext: ExecutionContext) {
+class MirrorConsumer(configuration: Config, producer: MirrorProducer)(implicit executionContext: ExecutionContext) {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -80,7 +79,6 @@ class DebugAvroConsumer(configuration: Config, producer: DebugJsonProducer)(
 
     var counter = count
 
-    print("POLLING")
     val records: ConsumerRecords[String, String] = consumer.poll(pollWindow)
     val it                                       = records.iterator()
 

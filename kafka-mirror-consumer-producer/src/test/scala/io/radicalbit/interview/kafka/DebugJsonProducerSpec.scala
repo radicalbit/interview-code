@@ -31,7 +31,7 @@ class DebugJsonProducerSpec extends AnyWordSpec with Matchers with EmbeddedKafka
 
   val config = ConfigFactory.parseString(configString).withFallback(ConfigFactory.load())
 
-  private val debugJsonProducer = new DebugJsonProducer(config)
+  private val mirrorProducer = new MirrorProducer(config)
 
   "DebugJsonProducer" should {
 
@@ -42,7 +42,7 @@ class DebugJsonProducerSpec extends AnyWordSpec with Matchers with EmbeddedKafka
     "properly write data on kafka" in {
       withRunningKafka {
         val _ =
-          Await.result(debugJsonProducer.send(key, data, topicName), Duration.Inf)
+          Await.result(mirrorProducer.send(key, data, topicName), Duration.Inf)
 
         val result =
           withConsumer[String, String, (String, String)] { consumer =>
