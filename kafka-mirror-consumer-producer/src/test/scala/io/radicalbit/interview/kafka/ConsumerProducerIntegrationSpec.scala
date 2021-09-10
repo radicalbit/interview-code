@@ -6,7 +6,7 @@ import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
-import org.scalatest.BeforeAndAfterEach
+import org.scalatest.{Assertion, BeforeAndAfterEach}
 import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -54,7 +54,7 @@ class ConsumerProducerIntegrationSpec extends AnyWordSpec with Matchers with Emb
 
   "KafkaConsumerProducer" should {
 
-    "consume avro data and produce json data" in {
+    "mirror data on a topic" in {
       val inputTopic  = "input_topic"
       val outputTopic = "output_topic"
 
@@ -72,6 +72,34 @@ class ConsumerProducerIntegrationSpec extends AnyWordSpec with Matchers with Emb
         }(embeddedKafkaConfigOutgoing, deserializer, deserializer)._2
 
       resultSecondTopic mustBe startingData
+    }
+
+    "mirror data on multiple topics" in {
+      val inputTopic     = "input_topic"
+      val inputTopicTwo  = "input_topic_two"
+      val outputTopic    = "output_topic"
+      val outputTopicTwo = "output_topic_two"
+
+      // producer on first kafka instance
+      EmbeddedKafka.withProducer[String, String, Unit](producer => {
+        producer.send(new ProducerRecord[String, String](inputTopic, startingData))
+        producer.send(new ProducerRecord[String, String](inputTopicTwo, startingData))
+      })
+
+      // should read 1 message from first kafka instance and write on second
+      Seq((inputTopic, outputTopic), (inputTopicTwo, outputTopicTwo)).foreach {
+        case (source, output) =>
+          mirrorConsumer.listen(source, output)
+      }
+
+      // consumer on second kafka instance
+      withConsumer[String, String, Assertion] { consumer =>
+        consumer
+          .consumeLazily[(String, String)](outputTopic, outputTopicTwo)
+          .take(2)
+          .map { case (_, value) => value }
+          .toList must contain theSameElementsAs Seq(startingData, startingData)
+      }(embeddedKafkaConfigOutgoing, deserializer, deserializer)
     }
 
   }
