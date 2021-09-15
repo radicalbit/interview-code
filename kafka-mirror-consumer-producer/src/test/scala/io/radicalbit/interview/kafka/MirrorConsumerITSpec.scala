@@ -13,7 +13,7 @@ import org.scalatest.wordspec.AnyWordSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ConsumerProducerIntegrationSpec extends AnyWordSpec with Matchers with EmbeddedKafka with BeforeAndAfterEach {
+class MirrorConsumerITSpec extends AnyWordSpec with Matchers with EmbeddedKafka with BeforeAndAfterEach {
 
   implicit val decoder: ConsumerRecord[String, String] => (String, String) = cr => (cr.key(), cr.value)
   implicit val deserializer: StringDeserializer                            = new StringDeserializer()
@@ -52,7 +52,7 @@ class ConsumerProducerIntegrationSpec extends AnyWordSpec with Matchers with Emb
     EmbeddedKafka.stop()
   }
 
-  "KafkaConsumerProducer" should {
+  "MirrorConsumer" should {
 
     "mirror data on a topic" in {
       val inputTopic  = "input_topic"

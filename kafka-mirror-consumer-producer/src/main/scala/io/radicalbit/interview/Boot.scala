@@ -1,8 +1,8 @@
 package io.radicalbit.interview
 
 import io.radicalbit.interview.kafka.{MirrorConsumer, MirrorProducer}
-import io.radicalbit.interview.service.DebugServiceRunner
 import com.typesafe.config.ConfigFactory
+import io.radicalbit.interview.service.MirrorServiceRunner
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -17,7 +17,7 @@ object Boot extends App {
 
     val topicToMirror = Seq(("sourceOne", "outputOne"), ("sourceTwo", "outputTwo"), ("sourceThree", "outputThree"))
 
-    new DebugServiceRunner(avroConsumer).startDebugService(topicToMirror)
+    new MirrorServiceRunner(avroConsumer).startMirrorService(topicToMirror)
 
     avroConsumer.consumer.close()
     jsonProducer.producer.close()

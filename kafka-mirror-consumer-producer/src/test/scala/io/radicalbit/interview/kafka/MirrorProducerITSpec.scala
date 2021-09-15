@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionException}
 
-class MirrorProducerSpec extends AnyWordSpec with Matchers with EmbeddedKafka {
+class MirrorProducerITSpec extends AnyWordSpec with Matchers with EmbeddedKafka {
 
   implicit val decoder: ConsumerRecord[String, String] => (String, String) =
     cr => (cr.key(), cr.value)
@@ -33,7 +33,7 @@ class MirrorProducerSpec extends AnyWordSpec with Matchers with EmbeddedKafka {
 
   private val mirrorProducer = new MirrorProducer(config)
 
-  "DebugJsonProducer" should {
+  "MirrorProducer" should {
 
     val key       = "I_Am_Key"
     val data      = """{"name": "Tuff"}"""

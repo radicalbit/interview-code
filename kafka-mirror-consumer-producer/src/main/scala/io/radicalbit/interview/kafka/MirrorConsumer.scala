@@ -48,8 +48,9 @@ class MirrorConsumer(configuration: Config, producer: MirrorProducer)(implicit e
 
       consumer.seekToBeginning(consumer.assignment())
 
-      if (withReadingLimit) startListeningWithCountLimit(outputTopic, valueToRead)
-      else startListening(outputTopic)
+      while (shouldRun) {
+        processIncomingData(outputTopic)
+      }
     } catch {
       case timeOutEx: TimeoutException =>
         timeOutEx.printStackTrace()
@@ -62,38 +63,25 @@ class MirrorConsumer(configuration: Config, producer: MirrorProducer)(implicit e
     def close(): Unit = shouldRun = false
   }
 
-  private def startListening(producerTopics: String): Unit = {
-    while (shouldRun) {
-      processIncomingData(producerTopics, defaultCountValue, defaultLimitValue, _ => 0)
-    }
-  }
-
-  private def startListeningWithCountLimit(producerTopics: String, limit: Int): Unit = {
-    val count = 0
-    while (shouldRun) {
-      processIncomingData(producerTopics, count, limit, (oldCount: Int) => oldCount + 1)
-    }
-  }
-
-  private def processIncomingData(producerTopics: String, count: Int, limit: Int, limitator: Int => Int): Unit = {
-
-    var counter = count
+  private def processIncomingData(producerTopics: String): Unit = {
+    var counter = 0
 
     val records: ConsumerRecords[String, String] = consumer.poll(pollWindow)
     val it                                       = records.iterator()
 
-    while (it.hasNext && counter <= limit) {
+    while (it.hasNext && (withReadingLimit && counter < valueToRead)) {
       val record: ConsumerRecord[String, String] = it.next()
       val receivedItem                           = record.value()
 
       log.info(s"Value got is [$receivedItem]")
 
-      counter = limitator.apply(counter)
+      if (withReadingLimit)
+        counter += 1
 
       for { result <- producer.send(record.key(), receivedItem, producerTopics) } yield result
     }
 
-    if (counter >= limit)
+    if (withReadingLimit && counter >= valueToRead)
       shouldRun = false
   }
 }
